@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Summer Goals</title>
+<style>
+  :root {
+    --bg: #fff8ec;
+    --bg-card: #ffffff;
+    --ink: #2b2118;
+    --muted: #8a7a66;
+    --accent: #ff8a3d;
+    --accent-soft: #ffd9b8;
+    --green: #4caf6d;
+    --green-soft: #cfead7;
+    --border: #efe2cc;
+    --danger: #d9534f;
+    --shadow: 0 2px 10px rgba(60, 40, 20, 0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.4;
+  }
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  .today {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin: 20px 0 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-family: inherit;
+  }
+  .tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .tab:hover:not(.active) { color: var(--ink); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .summary {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    flex: 1;
+    min-width: 120px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 22px; font-weight: 600; margin-top: 2px; }
+
+  .goal-list { display: flex; flex-direction: column; gap: 10px; }
+  .goal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .goal-row { display: flex; align-items: center; gap: 12px; }
+  .check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    padding: 0;
+  }
+  .check:hover { border-color: var(--accent); }
+  .check.done {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .check.done::after {
+    content: "✓";
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .goal-name {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .goal.done .goal-name {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .goal-meta {
+    display: flex;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .streak-badge {
+    background: var(--accent-soft);
+    color: #8a4a14;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+  .icon-btn:hover { color: var(--danger); background: rgba(217, 83, 79, 0.08); }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    transition: width 0.25s;
+  }
+  .progress-text {
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .subtasks { margin-left: 38px; display: flex; flex-direction: column; gap: 6px; }
+  .subtask { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .subtask .check { width: 18px; height: 18px; }
+  .subtask .check.done::after { font-size: 10px; }
+  .subtask.done .sub-name { color: var(--muted); text-decoration: line-through; }
+  .sub-name { flex: 1; }
+  .add-subtask {
+    display: flex;
+    gap: 6px;
+    margin-left: 38px;
+    margin-top: 4px;
+  }
+  .add-subtask input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    background: transparent;
+    font-family: inherit;
+  }
+  .add-subtask input:focus { outline: none; border-color: var(--accent); border-style: solid; }
+
+  .add-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .add-form input {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    font-family: inherit;
+  }
+  .add-form input:focus { outline: none; border-color: var(--accent); }
+  .add-form button {
+    padding: 12px 20px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .add-form button:hover { filter: brightness(0.95); }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 20px;
+    font-size: 14px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0 0 10px 4px;
+    font-weight: 600;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  footer button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+  }
+
+  .sync-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sync-btn:hover { color: var(--ink); border-color: var(--accent); }
+  .sync-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+  }
+  .sync-dot.ok { background: var(--green); }
+  .sync-dot.err { background: var(--danger); }
+  .sync-dot.busy { background: var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  .sync-panel {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .sync-panel.open { display: block; }
+  .sync-panel h3 { margin: 0 0 4px; font-size: 16px; }
+  .sync-panel p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  .sync-panel label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 10px 0 4px;
+    font-weight: 600;
+  }
+  .sync-panel input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    background: var(--bg);
+  }
+  .sync-panel input:focus { outline: none; border-color: var(--accent); }
+  .sync-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .sync-actions button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .sync-actions button.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .sync-actions button:hover { filter: brightness(0.96); }
+  .sync-status {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .sync-status.err { color: var(--danger); }
+  .sync-help {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .sync-help a { color: var(--accent); }
+
+  /* Heatmap */
+  .heatmap-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .heatmap-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .heatmap-head h3 { margin: 0; font-size: 14px; font-weight: 600; }
+  .heatmap-legend {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--muted);
+  }
+  .heatmap-legend .swatch {
+    width: 10px; height: 10px; border-radius: 2px; display: inline-block; vertical-align: middle;
+  }
+  .heatmap-scroll { overflow-x: auto; padding: 4px 0 2px; }
+  .heatmap {
+    display: grid;
+    grid-template-rows: repeat(7, 13px);
+    grid-auto-flow: column;
+    grid-auto-columns: 13px;
+    gap: 3px;
+    width: max-content;
+  }
+  .hm-cell {
+    width: 13px; height: 13px; border-radius: 3px;
+    background: #ece1cf;
+  }
+  .hm-cell.pre { background: transparent; }
+  .hm-cell.full { background: var(--green); }
+  .hm-cell.miss { background: #e8a09d; }
+  .hm-cell.partial { background: #f0c27a; }
+  .hm-cell.today { box-shadow: 0 0 0 2px var(--accent); }
+  .hm-empty {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 6px 0;
+  }
+
+  /* Deadline UI */
+  .deadline-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .deadline-chip:hover { border-color: var(--accent); color: var(--ink); }
+  .deadline-chip.soon { background: #fff0d6; color: #8a5a14; border-color: #ffd9b8; }
+  .deadline-chip.overdue { background: #fde6e5; color: #a13a37; border-color: #f4c4c2; }
+  .deadline-chip .x {
+    color: var(--muted);
+    margin-left: 2px;
+    padding: 0 2px;
+  }
+  .deadline-chip .x:hover { color: var(--danger); }
+  .deadline-edit {
+    display: none;
+    align-items: center;
+    gap: 6px;
+  }
+  .deadline-edit.open { display: inline-flex; }
+  .deadline-edit input[type="date"] {
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    background: var(--bg);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>☀️ Summer Goals</h1>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="today" id="today"></span>
+      <button class="sync-btn" id="sync-toggle"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Sync</span></button>
+    </div>
+  </header>
+
+  <div class="sync-panel" id="sync-panel">
+    <h3>Sync via GitHub Gist</h3>
+    <p>Stores your goals in a private gist so you can use the app from any device.</p>
+
+    <label for="sync-token">GitHub personal access token</label>
+    <input id="sync-token" type="password" placeholder="ghp_…" autocomplete="off" spellcheck="false" />
+
+    <label for="sync-gist">Gist ID (leave blank to create a new one)</label>
+    <input id="sync-gist" type="text" placeholder="e.g. a1b2c3d4e5f6…" autocomplete="off" spellcheck="false" />
+
+    <div class="sync-actions">
+      <button class="primary" id="sync-connect">Connect</button>
+      <button id="sync-pull">Pull now</button>
+      <button id="sync-push">Push now</button>
+      <button id="sync-disconnect">Disconnect</button>
+    </div>
+    <div class="sync-status" id="sync-status">Not connected.</div>
+    <div class="sync-help">
+      Create a token at <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com/settings/tokens</a>
+      — classic token with only the <strong>gist</strong> scope is enough. The token is stored only in this browser.
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="daily">Daily</button>
+    <button class="tab" data-tab="projects">Projects</button>
+  </nav>
+
+  <section id="panel-daily" class="panel active">
+    <div class="summary">
+      <div class="stat">
+        <div class="stat-label">Today</div>
+        <div class="stat-value" id="today-done">0 / 0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Best streak</div>
+        <div class="stat-value" id="best-streak">0 days</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Perfect days</div>
+        <div class="stat-value" id="perfect-days">0</div>
+      </div>
+    </div>
+
+    <div class="section-title">Today's goals</div>
+    <div id="daily-list" class="goal-list"></div>
+
+    <div class="heatmap-wrap" style="margin-top: 18px;">
+      <div class="heatmap-head">
+        <h3>Daily history</h3>
+        <div class="heatmap-legend">
+          <span class="swatch" style="background:#e8a09d"></span> missed
+          <span class="swatch" style="background:#f0c27a"></span> partial
+          <span class="swatch" style="background:#4caf6d"></span> all done
+        </div>
+      </div>
+      <div class="heatmap-scroll">
+        <div class="heatmap" id="heatmap"></div>
+        <div class="hm-empty" id="heatmap-empty" style="display:none;">Check off a goal to start tracking history.</div>
+      </div>
+    </div>
+
+    <form class="add-form" id="add-daily-form">
+      <input id="add-daily-input" type="text" placeholder="Add a daily goal (e.g. Run 5km)" maxlength="80" />
+      <button type="submit">Add</button>
+    </form>
+  </section>
+
+  <section id="panel-projects" class="panel">
+    <div class="summary">
+      <div class="stat">
+        <div class="stat-label">Active projects</div>
+        <div class="stat-value" id="active-projects">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value" id="done-projects">0</div>
+      </div>
+    </div>
+
+    <div class="section-title">Projects</div>
+    <div id="project-list" class="goal-list"></div>
+
+    <form class="add-form" id="add-project-form">
+      <input id="add-project-input" type="text" placeholder="Add a project (e.g. Finish guitar song)" maxlength="80" />
+      <button type="submit">Add</button>
+    </form>
+  </section>
+
+  <footer>
+    Stored locally in your browser.
+    <button id="export-btn">Export</button> ·
+    <button id="import-btn">Import</button>
+    <input id="import-file" type="file" accept="application/json" style="display:none" />
+  </footer>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "summer-goals-v1";
+  const SYNC_KEY = "summer-goals-sync-v1";
+  const GIST_FILENAME = "summer-goals.json";
+
+  // ----- Data model -----
+  // {
+  //   daily: [{ id, name, history: { "YYYY-MM-DD": true } }],
+  //   projects: [{ id, name, subtasks: [{ id, name, done }] }],
+  //   updatedAt: number
+  // }
+  const defaultState = { daily: [], projects: [], updatedAt: 0 };
+
+  let state = load();
+  let sync = loadSync();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return structuredClone(defaultState);
+      const parsed = JSON.parse(raw);
+      return migrate({ ...structuredClone(defaultState), ...parsed });
+    } catch {
+      return structuredClone(defaultState);
+    }
+  }
+  function migrate(s) {
+    // Backfill createdAt for daily goals (use earliest history date, or today)
+    s.daily.forEach(g => {
+      if (!g.createdAt) {
+        const dates = Object.keys(g.history || {}).sort();
+        g.createdAt = dates[0] || ymd();
+      }
+    });
+    // Ensure project shape
+    s.projects.forEach(p => {
+      if (p.deadline === undefined) p.deadline = null;
+      if (!Array.isArray(p.subtasks)) p.subtasks = [];
+    });
+    return s;
+  }
+  function save() {
+    state.updatedAt = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    schedulePush();
+  }
+  function loadSync() {
+    try {
+      const raw = localStorage.getItem(SYNC_KEY);
+      return raw ? JSON.parse(raw) : { token: "", gistId: "" };
+    } catch {
+      return { token: "", gistId: "" };
+    }
+  }
+  function saveSync() {
+    localStorage.setItem(SYNC_KEY, JSON.stringify(sync));
+  }
+  function uid() {
+    return Math.random().toString(36).slice(2, 10);
+  }
+
+  // ----- Date helpers (local time, so streaks line up with the user's day) -----
+  function ymd(d = new Date()) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+  function addDays(dateStr, n) {
+    const dt = parseYMD(dateStr);
+    dt.setDate(dt.getDate() + n);
+    return ymd(dt);
+  }
+  function parseYMD(s) {
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  function daysFromToday(dateStr) {
+    const ms = parseYMD(dateStr) - parseYMD(TODAY);
+    return Math.round(ms / 86400000);
+  }
+  const TODAY = ymd();
+
+  // ----- Streak calc -----
+  function currentStreak(history) {
+    let streak = 0;
+    let cursor = TODAY;
+    // If today not done, streak starts from yesterday
+    if (!history[cursor]) cursor = addDays(cursor, -1);
+    while (history[cursor]) {
+      streak++;
+      cursor = addDays(cursor, -1);
+    }
+    return streak;
+  }
+  function longestStreak(history) {
+    const dates = Object.keys(history).filter(k => history[k]).sort();
+    if (!dates.length) return 0;
+    let best = 1, run = 1;
+    for (let i = 1; i < dates.length; i++) {
+      if (dates[i] === addDays(dates[i - 1], 1)) {
+        run++;
+        best = Math.max(best, run);
+      } else {
+        run = 1;
+      }
+    }
+    return best;
+  }
+  function perfectDays() {
+    if (!state.daily.length) return 0;
+    // A day is "perfect" if every daily goal that existed was checked.
+    // Approximation: count days where ALL current daily goals were checked.
+    const allDates = new Set();
+    state.daily.forEach(g => Object.keys(g.history).forEach(d => allDates.add(d)));
+    let count = 0;
+    for (const d of allDates) {
+      if (state.daily.every(g => g.history[d])) count++;
+    }
+    return count;
+  }
+
+  // ----- Render -----
+  const els = {
+    today: document.getElementById("today"),
+    dailyList: document.getElementById("daily-list"),
+    projectList: document.getElementById("project-list"),
+    todayDone: document.getElementById("today-done"),
+    bestStreak: document.getElementById("best-streak"),
+    perfectDays: document.getElementById("perfect-days"),
+    activeProjects: document.getElementById("active-projects"),
+    doneProjects: document.getElementById("done-projects"),
+  };
+
+  function renderToday() {
+    const d = new Date();
+    els.today.textContent = d.toLocaleDateString(undefined, {
+      weekday: "long", month: "long", day: "numeric"
+    });
+  }
+
+  function renderDaily() {
+    els.dailyList.innerHTML = "";
+    if (!state.daily.length) {
+      els.dailyList.innerHTML = `<div class="empty">No daily goals yet. Add one below to get started.</div>`;
+    } else {
+      for (const goal of state.daily) {
+        const done = !!goal.history[TODAY];
+        const streak = currentStreak(goal.history);
+        const best = longestStreak(goal.history);
+        const totalDays = Object.values(goal.history).filter(Boolean).length;
+
+        const el = document.createElement("div");
+        el.className = "goal" + (done ? " done" : "");
+        el.innerHTML = `
+          <div class="goal-row">
+            <button class="check ${done ? "done" : ""}" data-action="toggle-daily" data-id="${goal.id}" aria-label="Toggle"></button>
+            <div class="goal-name">${escapeHtml(goal.name)}</div>
+            ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}</span>` : ""}
+            <button class="icon-btn" data-action="delete-daily" data-id="${goal.id}" title="Delete">✕</button>
+          </div>
+          <div class="goal-meta">
+            <span>Current: <strong>${streak}</strong> day${streak === 1 ? "" : "s"}</span>
+            <span>Best: <strong>${best}</strong></span>
+            <span>Total: <strong>${totalDays}</strong></span>
+          </div>
+        `;
+        els.dailyList.appendChild(el);
+      }
+    }
+
+    // Summary
+    const doneToday = state.daily.filter(g => g.history[TODAY]).length;
+    els.todayDone.textContent = `${doneToday} / ${state.daily.length}`;
+    const best = state.daily.reduce((m, g) => Math.max(m, longestStreak(g.history)), 0);
+    els.bestStreak.textContent = `${best} day${best === 1 ? "" : "s"}`;
+    els.perfectDays.textContent = perfectDays();
+
+    renderHeatmap();
+  }
+
+  function renderHeatmap() {
+    const container = document.getElementById("heatmap");
+    const empty = document.getElementById("heatmap-empty");
+    if (!state.daily.length) {
+      container.innerHTML = "";
+      empty.style.display = "block";
+      empty.textContent = "Add a daily goal to start tracking history.";
+      return;
+    }
+    // Earliest relevant date: oldest createdAt or history entry
+    const candidates = [];
+    state.daily.forEach(g => {
+      if (g.createdAt) candidates.push(g.createdAt);
+      Object.keys(g.history || {}).forEach(d => candidates.push(d));
+    });
+    if (!candidates.length) {
+      container.innerHTML = "";
+      empty.style.display = "block";
+      empty.textContent = "Check off a goal to start tracking history.";
+      return;
+    }
+    empty.style.display = "none";
+    const earliest = candidates.sort()[0];
+
+    // Align start to Monday of that week
+    const startDate = parseYMD(earliest);
+    const dow = (startDate.getDay() + 6) % 7; // Mon=0..Sun=6
+    startDate.setDate(startDate.getDate() - dow);
+
+    const endDate = parseYMD(TODAY);
+    // Pad to end of week so the last column is complete
+    const endDow = (endDate.getDay() + 6) % 7;
+    endDate.setDate(endDate.getDate() + (6 - endDow));
+
+    const cells = [];
+    let cursor = new Date(startDate);
+    while (cursor <= endDate) {
+      cells.push(ymd(cursor));
+      cursor = new Date(cursor);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    container.innerHTML = cells.map(d => {
+      // Before tracking started or future day → empty
+      if (d < earliest) return `<div class="hm-cell pre" title=""></div>`;
+      if (d > TODAY) return `<div class="hm-cell pre" title=""></div>`;
+      const applicable = state.daily.filter(g => (g.createdAt || TODAY) <= d);
+      if (applicable.length === 0) {
+        return `<div class="hm-cell" title="${d} — no goals yet"></div>`;
+      }
+      const done = applicable.filter(g => g.history[d]).length;
+      let cls = "hm-cell";
+      let label;
+      if (done === applicable.length) { cls += " full"; label = "all done"; }
+      else if (done === 0) { cls += " miss"; label = "none done"; }
+      else { cls += " partial"; label = `${done}/${applicable.length} done`; }
+      if (d === TODAY) cls += " today";
+      return `<div class="${cls}" title="${d} — ${label}"></div>`;
+    }).join("");
+  }
+
+  function renderProjects() {
+    els.projectList.innerHTML = "";
+    if (!state.projects.length) {
+      els.projectList.innerHTML = `<div class="empty">No projects yet. Add one below — finish a game, write a song, whatever.</div>`;
+    } else {
+      const sorted = sortedProjects();
+      for (const project of sorted) {
+        const total = project.subtasks.length;
+        const done = project.subtasks.filter(s => s.done).length;
+        const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+        const isComplete = total > 0 && done === total;
+        const deadlineHtml = deadlineChip(project, isComplete);
+
+        const el = document.createElement("div");
+        el.className = "goal" + (isComplete ? " done" : "");
+        el.innerHTML = `
+          <div class="goal-row">
+            <button class="check ${isComplete ? "done" : ""}" data-action="toggle-project" data-id="${project.id}" aria-label="Toggle"></button>
+            <div class="goal-name">${escapeHtml(project.name)}</div>
+            ${deadlineHtml}
+            <button class="icon-btn" data-action="delete-project" data-id="${project.id}" title="Delete">✕</button>
+          </div>
+          <div class="deadline-edit" data-project="${project.id}">
+            <input type="date" value="${project.deadline || ""}" />
+            <button class="icon-btn" data-action="save-deadline" data-id="${project.id}" title="Save">✓</button>
+            <button class="icon-btn" data-action="cancel-deadline" data-id="${project.id}" title="Cancel">✕</button>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div class="progress-text">${done} / ${total} · ${pct}%</div>
+          </div>
+          <div class="subtasks" data-project="${project.id}">
+            ${project.subtasks.map(s => `
+              <div class="subtask ${s.done ? "done" : ""}">
+                <button class="check ${s.done ? "done" : ""}" data-action="toggle-subtask" data-project="${project.id}" data-id="${s.id}" aria-label="Toggle"></button>
+                <span class="sub-name">${escapeHtml(s.name)}</span>
+                <button class="icon-btn" data-action="delete-subtask" data-project="${project.id}" data-id="${s.id}" title="Delete">✕</button>
+              </div>
+            `).join("")}
+          </div>
+          <form class="add-subtask" data-action="add-subtask" data-project="${project.id}">
+            <input type="text" placeholder="Add a step…" maxlength="80" />
+          </form>
+        `;
+        els.projectList.appendChild(el);
+      }
+    }
+    const complete = state.projects.filter(p => p.subtasks.length > 0 && p.subtasks.every(s => s.done)).length;
+    els.activeProjects.textContent = state.projects.length - complete;
+    els.doneProjects.textContent = complete;
+  }
+
+  function sortedProjects() {
+    return [...state.projects].sort((a, b) => {
+      const aDone = a.subtasks.length > 0 && a.subtasks.every(s => s.done);
+      const bDone = b.subtasks.length > 0 && b.subtasks.every(s => s.done);
+      if (aDone !== bDone) return aDone ? 1 : -1;
+      const aD = a.deadline ? parseYMD(a.deadline).getTime() : Infinity;
+      const bD = b.deadline ? parseYMD(b.deadline).getTime() : Infinity;
+      return aD - bD;
+    });
+  }
+
+  function deadlineChip(project, isComplete) {
+    if (!project.deadline) {
+      return `<button class="deadline-chip" data-action="edit-deadline" data-id="${project.id}">📅 set deadline</button>`;
+    }
+    const days = daysFromToday(project.deadline);
+    let cls = "deadline-chip";
+    let label;
+    if (isComplete) {
+      label = `📅 ${formatDeadline(project.deadline)}`;
+    } else if (days < 0) {
+      cls += " overdue";
+      label = `⚠ ${-days}d overdue`;
+    } else if (days === 0) {
+      cls += " soon";
+      label = `⏰ due today`;
+    } else if (days <= 7) {
+      cls += " soon";
+      label = `⏳ ${days}d left`;
+    } else {
+      label = `📅 ${days}d left`;
+    }
+    return `
+      <span class="${cls}" data-action="edit-deadline" data-id="${project.id}" title="${formatDeadline(project.deadline)}">
+        ${label}
+        <span class="x" data-action="clear-deadline" data-id="${project.id}" title="Remove deadline">×</span>
+      </span>
+    `;
+  }
+  function formatDeadline(d) {
+    return parseYMD(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  function renderAll() {
+    renderToday();
+    renderDaily();
+    renderProjects();
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  // ----- Actions -----
+  function toggleDaily(id) {
+    const g = state.daily.find(x => x.id === id);
+    if (!g) return;
+    if (g.history[TODAY]) delete g.history[TODAY];
+    else g.history[TODAY] = true;
+    save(); renderDaily();
+  }
+  function deleteDaily(id) {
+    if (!confirm("Delete this daily goal? Its history will be lost.")) return;
+    state.daily = state.daily.filter(g => g.id !== id);
+    save(); renderDaily();
+  }
+  function addDaily(name) {
+    state.daily.push({ id: uid(), name, history: {}, createdAt: TODAY });
+    save(); renderDaily();
+  }
+
+  function addProject(name) {
+    state.projects.push({ id: uid(), name, subtasks: [], deadline: null });
+    save(); renderProjects();
+  }
+  function setProjectDeadline(id, deadline) {
+    const p = state.projects.find(x => x.id === id);
+    if (!p) return;
+    p.deadline = deadline || null;
+    save(); renderProjects();
+  }
+  function deleteProject(id) {
+    if (!confirm("Delete this project?")) return;
+    state.projects = state.projects.filter(p => p.id !== id);
+    save(); renderProjects();
+  }
+  function toggleProject(id) {
+    // If no subtasks, this toggles a single "done" subtask so the bar fills.
+    const p = state.projects.find(x => x.id === id);
+    if (!p) return;
+    if (p.subtasks.length === 0) {
+      p.subtasks.push({ id: uid(), name: "Done", done: true });
+    } else {
+      const allDone = p.subtasks.every(s => s.done);
+      p.subtasks.forEach(s => s.done = !allDone);
+    }
+    save(); renderProjects();
+  }
+  function addSubtask(projectId, name) {
+    const p = state.projects.find(x => x.id === projectId);
+    if (!p) return;
+    p.subtasks.push({ id: uid(), name, done: false });
+    save(); renderProjects();
+  }
+  function toggleSubtask(projectId, subId) {
+    const p = state.projects.find(x => x.id === projectId);
+    if (!p) return;
+    const s = p.subtasks.find(x => x.id === subId);
+    if (!s) return;
+    s.done = !s.done;
+    save(); renderProjects();
+  }
+  function deleteSubtask(projectId, subId) {
+    const p = state.projects.find(x => x.id === projectId);
+    if (!p) return;
+    p.subtasks = p.subtasks.filter(s => s.id !== subId);
+    save(); renderProjects();
+  }
+
+  // ----- Event wiring -----
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+      const target = btn.dataset.tab;
+      document.querySelectorAll(".panel").forEach(p => {
+        p.classList.toggle("active", p.id === `panel-${target}`);
+      });
+    });
+  });
+
+  document.body.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    const { action, id, project } = btn.dataset;
+    if (action === "toggle-daily") toggleDaily(id);
+    else if (action === "delete-daily") deleteDaily(id);
+    else if (action === "toggle-project") toggleProject(id);
+    else if (action === "delete-project") deleteProject(id);
+    else if (action === "toggle-subtask") toggleSubtask(project, id);
+    else if (action === "delete-subtask") deleteSubtask(project, id);
+    else if (action === "edit-deadline") openDeadlineEdit(id, e);
+    else if (action === "clear-deadline") { e.stopPropagation(); setProjectDeadline(id, null); }
+    else if (action === "save-deadline") saveDeadlineEdit(id);
+    else if (action === "cancel-deadline") closeDeadlineEdit(id);
+  });
+
+  function findProjectEditor(id) {
+    return document.querySelector(`.deadline-edit[data-project="${id}"]`);
+  }
+  function openDeadlineEdit(id, e) {
+    if (e && e.target.closest('[data-action="clear-deadline"]')) return;
+    const editor = findProjectEditor(id);
+    if (!editor) return;
+    editor.classList.add("open");
+    editor.querySelector("input").focus();
+  }
+  function closeDeadlineEdit(id) {
+    const editor = findProjectEditor(id);
+    if (editor) editor.classList.remove("open");
+  }
+  function saveDeadlineEdit(id) {
+    const editor = findProjectEditor(id);
+    if (!editor) return;
+    const val = editor.querySelector("input").value;
+    setProjectDeadline(id, val || null);
+  }
+
+  document.getElementById("add-daily-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("add-daily-input");
+    const name = input.value.trim();
+    if (!name) return;
+    addDaily(name);
+    input.value = "";
+  });
+  document.getElementById("add-project-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("add-project-input");
+    const name = input.value.trim();
+    if (!name) return;
+    addProject(name);
+    input.value = "";
+  });
+
+  document.body.addEventListener("submit", (e) => {
+    const form = e.target.closest('[data-action="add-subtask"]');
+    if (!form) return;
+    e.preventDefault();
+    const input = form.querySelector("input");
+    const name = input.value.trim();
+    if (!name) return;
+    addSubtask(form.dataset.project, name);
+    input.value = "";
+  });
+
+  // ----- Export / Import -----
+  document.getElementById("export-btn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `summer-goals-${TODAY}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById("import-btn").addEventListener("click", () => {
+    document.getElementById("import-file").click();
+  });
+  document.getElementById("import-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data.daily || !data.projects) throw new Error("Invalid file");
+      if (!confirm("Replace current data with imported file?")) return;
+      state = { daily: data.daily, projects: data.projects };
+      save();
+      renderAll();
+    } catch (err) {
+      alert("Could not import: " + err.message);
+    }
+    e.target.value = "";
+  });
+
+  // ----- Sync (GitHub Gist) -----
+  const syncEls = {
+    toggle: document.getElementById("sync-toggle"),
+    panel: document.getElementById("sync-panel"),
+    dot: document.getElementById("sync-dot"),
+    label: document.getElementById("sync-label"),
+    status: document.getElementById("sync-status"),
+    token: document.getElementById("sync-token"),
+    gist: document.getElementById("sync-gist"),
+    connect: document.getElementById("sync-connect"),
+    pull: document.getElementById("sync-pull"),
+    push: document.getElementById("sync-push"),
+    disconnect: document.getElementById("sync-disconnect"),
+  };
+
+  let pushTimer = null;
+  let pushing = false;
+
+  function setStatus(text, kind) {
+    // kind: "idle" | "ok" | "err" | "busy"
+    syncEls.status.textContent = text;
+    syncEls.status.classList.toggle("err", kind === "err");
+    syncEls.dot.classList.remove("ok", "err", "busy");
+    if (kind === "ok") syncEls.dot.classList.add("ok");
+    else if (kind === "err") syncEls.dot.classList.add("err");
+    else if (kind === "busy") syncEls.dot.classList.add("busy");
+    syncEls.label.textContent = sync.gistId ? "Synced" : "Sync";
+  }
+
+  function isConnected() { return !!(sync.token && sync.gistId); }
+
+  async function ghRequest(path, opts = {}) {
+    const res = await fetch(`https://api.github.com${path}`, {
+      ...opts,
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": `Bearer ${sync.token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(opts.body ? { "Content-Type": "application/json" } : {}),
+        ...(opts.headers || {}),
+      },
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`${res.status} ${res.statusText}${txt ? " — " + txt.slice(0, 120) : ""}`);
+    }
+    return res.json();
+  }
+
+  async function createGist() {
+    const body = {
+      description: "Summer Goals (private)",
+      public: false,
+      files: { [GIST_FILENAME]: { content: JSON.stringify(state, null, 2) } },
+    };
+    const gist = await ghRequest("/gists", { method: "POST", body: JSON.stringify(body) });
+    sync.gistId = gist.id;
+    saveSync();
+    syncEls.gist.value = gist.id;
+  }
+
+  async function pushNow() {
+    if (!isConnected() || pushing) return;
+    pushing = true;
+    setStatus("Pushing…", "busy");
+    try {
+      const body = { files: { [GIST_FILENAME]: { content: JSON.stringify(state, null, 2) } } };
+      await ghRequest(`/gists/${sync.gistId}`, { method: "PATCH", body: JSON.stringify(body) });
+      setStatus(`Synced ${new Date().toLocaleTimeString()}`, "ok");
+    } catch (e) {
+      setStatus(`Push failed: ${e.message}`, "err");
+    } finally {
+      pushing = false;
+    }
+  }
+
+  function schedulePush() {
+    if (!isConnected()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushNow, 1500);
+  }
+
+  async function pullNow({ silent = false } = {}) {
+    if (!isConnected()) return;
+    if (!silent) setStatus("Pulling…", "busy");
+    try {
+      const gist = await ghRequest(`/gists/${sync.gistId}`);
+      const file = gist.files && gist.files[GIST_FILENAME];
+      if (!file) throw new Error(`Gist has no ${GIST_FILENAME}`);
+      let content = file.content;
+      if (file.truncated && file.raw_url) {
+        content = await (await fetch(file.raw_url)).text();
+      }
+      const remote = JSON.parse(content);
+      const remoteUpdated = remote.updatedAt || 0;
+      const localUpdated = state.updatedAt || 0;
+      if (remoteUpdated > localUpdated) {
+        state = { ...structuredClone(defaultState), ...remote };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+        setStatus(`Pulled ${new Date().toLocaleTimeString()}`, "ok");
+      } else if (remoteUpdated < localUpdated) {
+        setStatus("Local is newer — pushing…", "busy");
+        await pushNow();
+      } else {
+        setStatus(`Up to date ${new Date().toLocaleTimeString()}`, "ok");
+      }
+    } catch (e) {
+      setStatus(`Pull failed: ${e.message}`, "err");
+    }
+  }
+
+  syncEls.toggle.addEventListener("click", () => {
+    syncEls.panel.classList.toggle("open");
+    if (syncEls.panel.classList.contains("open")) {
+      syncEls.token.value = sync.token;
+      syncEls.gist.value = sync.gistId;
+    }
+  });
+
+  syncEls.connect.addEventListener("click", async () => {
+    const token = syncEls.token.value.trim();
+    const gistId = syncEls.gist.value.trim();
+    if (!token) { setStatus("Enter a token first.", "err"); return; }
+    sync.token = token;
+    sync.gistId = gistId;
+    saveSync();
+    setStatus("Connecting…", "busy");
+    try {
+      if (!sync.gistId) {
+        await createGist();
+        setStatus("Created new gist. Synced.", "ok");
+      } else {
+        await pullNow({ silent: true });
+      }
+    } catch (e) {
+      setStatus(`Connect failed: ${e.message}`, "err");
+    }
+  });
+
+  syncEls.pull.addEventListener("click", () => pullNow());
+  syncEls.push.addEventListener("click", () => pushNow());
+  syncEls.disconnect.addEventListener("click", () => {
+    if (!confirm("Disconnect sync? Token + gist ID will be removed from this browser. Your gist is not deleted.")) return;
+    sync = { token: "", gistId: "" };
+    saveSync();
+    syncEls.token.value = "";
+    syncEls.gist.value = "";
+    setStatus("Not connected.", "idle");
+  });
+
+  // ----- Init -----
+  renderAll();
+  if (isConnected()) {
+    setStatus("Connected. Checking for updates…", "busy");
+    pullNow({ silent: true });
+  } else {
+    setStatus("Not connected.", "idle");
+  }
+})();
+</script>
+</body>
+</html>
