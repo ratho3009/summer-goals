@@ -448,6 +448,203 @@
     font-family: inherit;
     background: var(--bg);
   }
+
+  /* Timer */
+  .timer-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 4px 3px 10px;
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    font-family: inherit;
+  }
+  .timer-chip.running { background: #fff0d6; color: #8a5a14; border-color: #ffd9b8; }
+  .timer-chip .timer-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    width: 22px; height: 22px;
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-family: inherit;
+  }
+  .timer-chip .timer-btn.ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .timer-chip .timer-btn:hover { filter: brightness(0.96); }
+  .timer-add {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .timer-add:hover { border-style: solid; border-color: var(--accent); color: var(--ink); }
+
+  #add-daily-duration {
+    width: 72px;
+    flex: 0 0 72px;
+    padding: 12px 10px;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    font-family: inherit;
+    text-align: center;
+  }
+  #add-daily-duration:focus { outline: none; border-color: var(--accent); }
+
+  /* Sheets */
+  .sheet {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sheet-icon {
+    width: 38px; height: 38px;
+    background: var(--accent-soft);
+    color: #8a4a14;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .sheet-main { flex: 1; min-width: 0; }
+  .sheet-name { font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sheet-meta { font-size: 12px; color: var(--muted); }
+  .sheet-actions { display: flex; gap: 6px; align-items: center; }
+  .sheet-actions button, .sheet-actions a {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+  }
+  .sheet-actions button.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .sheet-actions button:hover, .sheet-actions a:hover { filter: brightness(0.96); }
+
+  .sheet-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .sheet-form input[type="text"] {
+    padding: 12px 14px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    font-family: inherit;
+  }
+  .sheet-form input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  .file-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--muted);
+    cursor: pointer;
+    grid-column: 1 / -1;
+  }
+  .file-input:hover { border-color: var(--accent); color: var(--ink); }
+  .file-input.has-file { color: var(--ink); border-style: solid; }
+  .sheet-form button[type="submit"] {
+    padding: 12px 20px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    grid-column: 1 / -1;
+    font-family: inherit;
+  }
+  .upload-warn {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .upload-warn.err { color: var(--danger); }
+
+  /* PDF modal */
+  .pdf-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(40, 25, 10, 0.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .pdf-modal.open { display: flex; }
+  .pdf-modal-inner {
+    background: var(--bg-card);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 1000px;
+    height: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .pdf-modal-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pdf-modal-head .title { flex: 1; font-weight: 600; }
+  .pdf-modal-head a, .pdf-modal-head button {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+  }
+  #pdf-frame { flex: 1; border: none; background: var(--bg); }
 </style>
 </head>
 <body>
@@ -486,6 +683,7 @@
   <nav class="tabs">
     <button class="tab active" data-tab="daily">Daily</button>
     <button class="tab" data-tab="projects">Projects</button>
+    <button class="tab" data-tab="sheets">Sheets</button>
   </nav>
 
   <section id="panel-daily" class="panel active">
@@ -524,6 +722,7 @@
 
     <form class="add-form" id="add-daily-form">
       <input id="add-daily-input" type="text" placeholder="Add a daily goal (e.g. Run 5km)" maxlength="80" />
+      <input id="add-daily-duration" type="number" min="1" max="600" placeholder="min" title="Optional duration in minutes" />
       <button type="submit">Add</button>
     </form>
   </section>
@@ -549,6 +748,44 @@
     </form>
   </section>
 
+  <section id="panel-sheets" class="panel">
+    <div class="summary">
+      <div class="stat">
+        <div class="stat-label">Pieces</div>
+        <div class="stat-value" id="sheets-count">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Storage used</div>
+        <div class="stat-value" id="sheets-size">0 KB</div>
+      </div>
+    </div>
+
+    <div class="section-title">Sheet music</div>
+    <div id="sheets-list" class="goal-list"></div>
+
+    <form class="sheet-form" id="add-sheet-form">
+      <input id="add-sheet-name" type="text" placeholder="Piece (e.g. Clair de Lune)" maxlength="80" />
+      <input id="add-sheet-composer" type="text" placeholder="Composer (optional)" maxlength="80" />
+      <label class="file-input" id="add-sheet-file-label">
+        <input type="file" id="add-sheet-file" accept="application/pdf" hidden />
+        <span>📄 <span id="add-sheet-file-name">Choose PDF…</span></span>
+      </label>
+      <div class="upload-warn" id="add-sheet-warn">PDFs sync across devices up to ~750 KB. Larger files stay on this device only.</div>
+      <button type="submit">Add piece</button>
+    </form>
+  </section>
+
+  <div class="pdf-modal" id="pdf-modal">
+    <div class="pdf-modal-inner">
+      <div class="pdf-modal-head">
+        <span class="title" id="pdf-title">Sheet</span>
+        <a id="pdf-download" download>Download</a>
+        <button id="pdf-close">Close</button>
+      </div>
+      <iframe id="pdf-frame" src="about:blank"></iframe>
+    </div>
+  </div>
+
   <footer>
     Stored locally in your browser.
     <button id="export-btn">Export</button> ·
@@ -569,7 +806,8 @@
   //   projects: [{ id, name, subtasks: [{ id, name, done }] }],
   //   updatedAt: number
   // }
-  const defaultState = { daily: [], projects: [], updatedAt: 0 };
+  const defaultState = { daily: [], projects: [], sheets: [], updatedAt: 0 };
+  const TIMERS_KEY = "summer-goals-timers-v1";
 
   let state = load();
   let sync = loadSync();
@@ -585,18 +823,18 @@
     }
   }
   function migrate(s) {
-    // Backfill createdAt for daily goals (use earliest history date, or today)
     s.daily.forEach(g => {
       if (!g.createdAt) {
         const dates = Object.keys(g.history || {}).sort();
         g.createdAt = dates[0] || ymd();
       }
+      if (g.duration === undefined) g.duration = null; // seconds, or null
     });
-    // Ensure project shape
     s.projects.forEach(p => {
       if (p.deadline === undefined) p.deadline = null;
       if (!Array.isArray(p.subtasks)) p.subtasks = [];
     });
+    if (!Array.isArray(s.sheets)) s.sheets = [];
     return s;
   }
   function save() {
@@ -717,6 +955,7 @@
             <button class="check ${done ? "done" : ""}" data-action="toggle-daily" data-id="${goal.id}" aria-label="Toggle"></button>
             <div class="goal-name">${escapeHtml(goal.name)}</div>
             ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}</span>` : ""}
+            ${timerChip(goal, done)}
             <button class="icon-btn" data-action="delete-daily" data-id="${goal.id}" title="Delete">✕</button>
           </div>
           <div class="goal-meta">
@@ -899,6 +1138,7 @@
     renderToday();
     renderDaily();
     renderProjects();
+    renderSheets();
   }
 
   function escapeHtml(s) {
@@ -920,8 +1160,16 @@
     state.daily = state.daily.filter(g => g.id !== id);
     save(); renderDaily();
   }
-  function addDaily(name) {
-    state.daily.push({ id: uid(), name, history: {}, createdAt: TODAY });
+  function addDaily(name, durationSec = null) {
+    state.daily.push({ id: uid(), name, history: {}, createdAt: TODAY, duration: durationSec });
+    save(); renderDaily();
+  }
+  function setDailyDuration(id, durationSec) {
+    const g = state.daily.find(x => x.id === id);
+    if (!g) return;
+    g.duration = durationSec;
+    // Reset timer state when duration changes
+    clearTimer(id);
     save(); renderDaily();
   }
 
@@ -998,6 +1246,12 @@
     else if (action === "clear-deadline") { e.stopPropagation(); setProjectDeadline(id, null); }
     else if (action === "save-deadline") saveDeadlineEdit(id);
     else if (action === "cancel-deadline") closeDeadlineEdit(id);
+    else if (action === "set-duration") promptDuration(id);
+    else if (action === "start-timer") startTimer(id);
+    else if (action === "pause-timer") pauseTimer(id);
+    else if (action === "reset-timer") resetTimer(id);
+    else if (action === "open-sheet") openSheet(id);
+    else if (action === "delete-sheet") deleteSheet(id);
   });
 
   function findProjectEditor(id) {
@@ -1024,10 +1278,14 @@
   document.getElementById("add-daily-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const input = document.getElementById("add-daily-input");
+    const durInput = document.getElementById("add-daily-duration");
     const name = input.value.trim();
     if (!name) return;
-    addDaily(name);
+    const mins = parseInt(durInput.value, 10);
+    const dur = (mins && mins > 0) ? mins * 60 : null;
+    addDaily(name, dur);
     input.value = "";
+    durInput.value = "";
   });
   document.getElementById("add-project-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -1077,6 +1335,393 @@
       alert("Could not import: " + err.message);
     }
     e.target.value = "";
+  });
+
+  // ----- Timers (device-local, not synced) -----
+  let timers = loadTimers();
+  function loadTimers() {
+    try { return JSON.parse(localStorage.getItem(TIMERS_KEY) || "{}"); }
+    catch { return {}; }
+  }
+  function saveTimers() {
+    localStorage.setItem(TIMERS_KEY, JSON.stringify(timers));
+  }
+  function timerElapsed(id) {
+    const t = timers[id];
+    if (!t) return 0;
+    return t.elapsed + (t.startedAt ? (Date.now() - t.startedAt) / 1000 : 0);
+  }
+  function timerRemaining(goal) {
+    if (!goal.duration) return 0;
+    return Math.max(0, goal.duration - timerElapsed(goal.id));
+  }
+  function startTimer(id) {
+    const t = timers[id] || { elapsed: 0, startedAt: null };
+    t.startedAt = Date.now();
+    timers[id] = t;
+    saveTimers();
+    ensureTickLoop();
+    renderDaily();
+  }
+  function pauseTimer(id) {
+    const t = timers[id];
+    if (!t || !t.startedAt) return;
+    t.elapsed += (Date.now() - t.startedAt) / 1000;
+    t.startedAt = null;
+    saveTimers();
+    renderDaily();
+  }
+  function resetTimer(id) {
+    delete timers[id];
+    saveTimers();
+    renderDaily();
+  }
+  function clearTimer(id) { resetTimer(id); }
+
+  let tickHandle = null;
+  function ensureTickLoop() {
+    if (tickHandle) return;
+    tickHandle = setInterval(() => {
+      let anyRunning = false;
+      let completedAny = false;
+      for (const g of state.daily) {
+        const t = timers[g.id];
+        if (t && t.startedAt) {
+          anyRunning = true;
+          if (g.duration && timerElapsed(g.id) >= g.duration) {
+            // Auto-complete
+            t.elapsed = g.duration;
+            t.startedAt = null;
+            saveTimers();
+            if (!g.history[TODAY]) {
+              g.history[TODAY] = true;
+              completedAny = true;
+            }
+          }
+        }
+      }
+      if (completedAny) save();
+      renderDaily();
+      if (!anyRunning) {
+        clearInterval(tickHandle);
+        tickHandle = null;
+      }
+    }, 1000);
+  }
+
+  function formatTime(sec) {
+    sec = Math.max(0, Math.round(sec));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+  function formatDuration(sec) {
+    if (sec >= 3600 && sec % 3600 === 0) return `${sec/3600}h`;
+    if (sec >= 60) return `${Math.round(sec/60)}m`;
+    return `${sec}s`;
+  }
+
+  function timerChip(goal, done) {
+    if (done) {
+      return goal.duration
+        ? `<span class="timer-chip" title="Daily duration">⏱ ${formatDuration(goal.duration)}</span>`
+        : "";
+    }
+    if (!goal.duration) {
+      return `<button class="timer-add" data-action="set-duration" data-id="${goal.id}" title="Set a duration">+ timer</button>`;
+    }
+    const t = timers[goal.id];
+    const running = !!(t && t.startedAt);
+    const elapsed = timerElapsed(goal.id);
+    const remaining = Math.max(0, goal.duration - elapsed);
+    const cls = "timer-chip" + (running ? " running" : "");
+    let buttons = "";
+    if (running) {
+      buttons = `<button class="timer-btn" data-action="pause-timer" data-id="${goal.id}" title="Pause">⏸</button>`;
+    } else if (elapsed > 0) {
+      buttons = `
+        <button class="timer-btn" data-action="start-timer" data-id="${goal.id}" title="Resume">▶</button>
+        <button class="timer-btn ghost" data-action="reset-timer" data-id="${goal.id}" title="Reset">↺</button>
+      `;
+    } else {
+      buttons = `<button class="timer-btn" data-action="start-timer" data-id="${goal.id}" title="Start">▶</button>`;
+    }
+    return `
+      <span class="${cls}" title="Click time to edit">
+        <span data-action="set-duration" data-id="${goal.id}" style="cursor:pointer;">⏱ ${formatTime(remaining)}</span>
+        ${buttons}
+      </span>
+    `;
+  }
+
+  function promptDuration(id) {
+    const g = state.daily.find(x => x.id === id);
+    if (!g) return;
+    const current = g.duration ? Math.round(g.duration / 60) : "";
+    const ans = prompt("Duration in minutes (empty to remove):", current);
+    if (ans === null) return;
+    const trimmed = ans.trim();
+    if (trimmed === "") { setDailyDuration(id, null); return; }
+    const mins = parseInt(trimmed, 10);
+    if (!mins || mins <= 0) { alert("Enter a positive number of minutes."); return; }
+    setDailyDuration(id, mins * 60);
+  }
+
+  // ----- Sheets (IndexedDB + gist) -----
+  const DB_NAME = "summer-goals";
+  const DB_STORE = "pdfs";
+  let dbPromise = null;
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return dbPromise;
+  }
+  async function dbPut(id, blob) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(DB_STORE, "readwrite");
+      tx.objectStore(DB_STORE).put(blob, id);
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+  async function dbGet(id) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(DB_STORE, "readonly");
+      const r = tx.objectStore(DB_STORE).get(id);
+      r.onsuccess = () => res(r.result || null);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function dbDelete(id) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(DB_STORE, "readwrite");
+      tx.objectStore(DB_STORE).delete(id);
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+
+  async function blobToBase64(blob) {
+    const buf = await blob.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+  }
+  function base64ToBlob(b64, type = "application/pdf") {
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type });
+  }
+
+  const GIST_MAX_FILE = 950 * 1024; // leave a little headroom
+
+  async function addSheet(name, composer, file) {
+    const id = uid();
+    const sheet = {
+      id, name, composer: composer || "",
+      filename: file.name,
+      size: file.size,
+      addedAt: Date.now(),
+      syncFile: null,
+      synced: false,
+    };
+    await dbPut(id, file);
+    state.sheets.push(sheet);
+
+    // Encode + (maybe) push to gist
+    const b64 = await blobToBase64(file);
+    if (b64.length <= GIST_MAX_FILE) {
+      sheet.syncFile = `sheet-${id}.b64`;
+      if (isConnected()) {
+        try {
+          await ghRequest(`/gists/${sync.gistId}`, {
+            method: "PATCH",
+            body: JSON.stringify({ files: { [sheet.syncFile]: { content: b64 } } }),
+          });
+          sheet.synced = true;
+        } catch (e) {
+          setStatus(`Sheet push failed: ${e.message}`, "err");
+        }
+      }
+    } else {
+      // Too big for gist
+      sheet.syncFile = null;
+    }
+    save(); // pushes metadata
+    renderSheets();
+  }
+
+  async function deleteSheet(id) {
+    const sheet = state.sheets.find(s => s.id === id);
+    if (!sheet) return;
+    if (!confirm(`Delete "${sheet.name}"? The PDF will be removed from this device and the synced copy.`)) return;
+    await dbDelete(id);
+    if (sheet.syncFile && isConnected()) {
+      try {
+        await ghRequest(`/gists/${sync.gistId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ files: { [sheet.syncFile]: null } }),
+        });
+      } catch (e) { /* ignore — gist file might already be gone */ }
+    }
+    state.sheets = state.sheets.filter(s => s.id !== id);
+    save();
+    renderSheets();
+  }
+
+  async function getSheetBlob(sheet) {
+    let blob = await dbGet(sheet.id);
+    if (blob) return blob;
+    // Not cached → pull from gist
+    if (!sheet.syncFile || !isConnected()) return null;
+    setStatus("Fetching PDF…", "busy");
+    try {
+      const gist = await ghRequest(`/gists/${sync.gistId}`);
+      const file = gist.files && gist.files[sheet.syncFile];
+      if (!file) throw new Error("not in gist");
+      let content = file.content;
+      if (file.truncated && file.raw_url) {
+        content = await (await fetch(file.raw_url)).text();
+      }
+      blob = base64ToBlob(content.replace(/\s/g, ""));
+      await dbPut(sheet.id, blob);
+      setStatus("PDF cached.", "ok");
+      return blob;
+    } catch (e) {
+      setStatus(`PDF fetch failed: ${e.message}`, "err");
+      return null;
+    }
+  }
+
+  let activePdfUrl = null;
+  async function openSheet(id) {
+    const sheet = state.sheets.find(s => s.id === id);
+    if (!sheet) return;
+    const blob = await getSheetBlob(sheet);
+    if (!blob) {
+      alert(`Couldn't load "${sheet.name}". The PDF isn't on this device and isn't synced.`);
+      return;
+    }
+    if (activePdfUrl) URL.revokeObjectURL(activePdfUrl);
+    activePdfUrl = URL.createObjectURL(blob);
+    document.getElementById("pdf-title").textContent = sheet.composer
+      ? `${sheet.name} — ${sheet.composer}`
+      : sheet.name;
+    const dl = document.getElementById("pdf-download");
+    dl.href = activePdfUrl;
+    dl.download = sheet.filename || `${sheet.name}.pdf`;
+    document.getElementById("pdf-frame").src = activePdfUrl;
+    document.getElementById("pdf-modal").classList.add("open");
+  }
+  function closePdf() {
+    document.getElementById("pdf-modal").classList.remove("open");
+    document.getElementById("pdf-frame").src = "about:blank";
+    if (activePdfUrl) { URL.revokeObjectURL(activePdfUrl); activePdfUrl = null; }
+  }
+
+  function fmtBytes(n) {
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+    return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  }
+
+  function renderSheets() {
+    const list = document.getElementById("sheets-list");
+    list.innerHTML = "";
+    if (!state.sheets.length) {
+      list.innerHTML = `<div class="empty">No sheets yet. Add a piece below.</div>`;
+    } else {
+      const sorted = [...state.sheets].sort((a, b) => b.addedAt - a.addedAt);
+      for (const sheet of sorted) {
+        const el = document.createElement("div");
+        el.className = "sheet";
+        const syncLabel = sheet.syncFile
+          ? (sheet.synced ? "synced" : "sync pending")
+          : "local only (too big to sync)";
+        el.innerHTML = `
+          <div class="sheet-icon">🎼</div>
+          <div class="sheet-main">
+            <div class="sheet-name">${escapeHtml(sheet.name)}</div>
+            <div class="sheet-meta">
+              ${sheet.composer ? escapeHtml(sheet.composer) + " · " : ""}${fmtBytes(sheet.size)} · ${syncLabel}
+            </div>
+          </div>
+          <div class="sheet-actions">
+            <button class="primary" data-action="open-sheet" data-id="${sheet.id}">Open</button>
+            <button class="icon-btn" data-action="delete-sheet" data-id="${sheet.id}" title="Delete">✕</button>
+          </div>
+        `;
+        list.appendChild(el);
+      }
+    }
+    document.getElementById("sheets-count").textContent = state.sheets.length;
+    document.getElementById("sheets-size").textContent = fmtBytes(state.sheets.reduce((a, s) => a + (s.size || 0), 0));
+  }
+
+  // Sheet form wiring
+  const sheetFileInput = document.getElementById("add-sheet-file");
+  const sheetFileLabel = document.getElementById("add-sheet-file-label");
+  const sheetFileName = document.getElementById("add-sheet-file-name");
+  const sheetWarn = document.getElementById("add-sheet-warn");
+  sheetFileInput.addEventListener("change", () => {
+    const f = sheetFileInput.files[0];
+    if (!f) {
+      sheetFileName.textContent = "Choose PDF…";
+      sheetFileLabel.classList.remove("has-file");
+      sheetWarn.classList.remove("err");
+      sheetWarn.textContent = "PDFs sync across devices up to ~750 KB. Larger files stay on this device only.";
+      return;
+    }
+    sheetFileName.textContent = `${f.name} (${fmtBytes(f.size)})`;
+    sheetFileLabel.classList.add("has-file");
+    if (f.size > 700 * 1024) {
+      sheetWarn.classList.add("err");
+      sheetWarn.textContent = `⚠ ${fmtBytes(f.size)} — likely too big to sync via gist. Will be stored on this device only.`;
+    } else {
+      sheetWarn.classList.remove("err");
+      sheetWarn.textContent = "Will sync across your devices.";
+    }
+  });
+  document.getElementById("add-sheet-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("add-sheet-name").value.trim();
+    const composer = document.getElementById("add-sheet-composer").value.trim();
+    const file = sheetFileInput.files[0];
+    if (!name || !file) { alert("Need a name and a PDF."); return; }
+    if (file.type !== "application/pdf") { alert("Please choose a PDF file."); return; }
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true; submitBtn.textContent = "Uploading…";
+    try {
+      await addSheet(name, composer, file);
+      document.getElementById("add-sheet-name").value = "";
+      document.getElementById("add-sheet-composer").value = "";
+      sheetFileInput.value = "";
+      sheetFileName.textContent = "Choose PDF…";
+      sheetFileLabel.classList.remove("has-file");
+      sheetWarn.classList.remove("err");
+      sheetWarn.textContent = "PDFs sync across devices up to ~750 KB. Larger files stay on this device only.";
+    } finally {
+      submitBtn.disabled = false; submitBtn.textContent = "Add piece";
+    }
+  });
+  document.getElementById("pdf-close").addEventListener("click", closePdf);
+  document.getElementById("pdf-modal").addEventListener("click", (e) => {
+    if (e.target.id === "pdf-modal") closePdf();
   });
 
   // ----- Sync (GitHub Gist) -----
@@ -1232,6 +1877,8 @@
 
   // ----- Init -----
   renderAll();
+  // Resume any running timer from previous session
+  if (Object.values(timers).some(t => t && t.startedAt)) ensureTickLoop();
   if (isConnected()) {
     setStatus("Connected. Checking for updates…", "busy");
     pullNow({ silent: true });
