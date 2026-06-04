@@ -712,6 +712,9 @@
     <label for="sync-gist">Gist ID (leave blank to create a new one)</label>
     <input id="sync-gist" type="text" placeholder="e.g. a1b2c3d4e5f6…" autocomplete="off" spellcheck="false" />
 
+    <label for="sync-repo">PDF storage repo (private)</label>
+    <input id="sync-repo" type="text" placeholder="owner/repo  — blank for &lt;you&gt;/summer-goals-sheets" autocomplete="off" spellcheck="false" />
+
     <div class="sync-actions">
       <button class="primary" id="sync-connect">Connect</button>
       <button id="sync-pull">Pull now</button>
@@ -720,8 +723,9 @@
     </div>
     <div class="sync-status" id="sync-status">Not connected.</div>
     <div class="sync-help">
-      Create a token at <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com/settings/tokens</a>
-      — classic token with only the <strong>gist</strong> scope is enough. The token is stored only in this browser.
+      Create a classic token at <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>
+      with the <strong>gist</strong> and <strong>repo</strong> scopes ticked. The token is stored only in this browser.
+      On first connect the app creates a private repo for your PDFs if it doesn't exist.
     </div>
   </div>
 
@@ -815,7 +819,7 @@
         <input type="file" id="add-sheet-file" accept="application/pdf" hidden />
         <span>📄 <span id="add-sheet-file-name">Choose PDF…</span></span>
       </label>
-      <div class="upload-warn" id="add-sheet-warn">PDFs sync across devices up to ~750 KB. Larger files stay on this device only.</div>
+      <div class="upload-warn" id="add-sheet-warn">PDFs up to 50 MB sync across devices. Larger files stay on this device only.</div>
       <button type="submit">Add piece</button>
     </form>
   </section>
@@ -900,11 +904,12 @@
     schedulePush();
   }
   function loadSync() {
+    const defaults = { token: "", gistId: "", repoOwner: "", repoName: "" };
     try {
       const raw = localStorage.getItem(SYNC_KEY);
-      return raw ? JSON.parse(raw) : { token: "", gistId: "" };
+      return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
     } catch {
-      return { token: "", gistId: "" };
+      return defaults;
     }
   }
   function saveSync() {
@@ -1585,7 +1590,73 @@
     return new Blob([bytes], { type });
   }
 
-  const GIST_MAX_FILE = 950 * 1024; // leave a little headroom
+  const GIST_MAX_FILE = 950 * 1024; // legacy: small PDFs kept in gist
+  const REPO_MAX_FILE = 50 * 1024 * 1024; // 50 MB via Contents API
+
+  function isRepoConnected() {
+    return !!(sync.token && sync.repoOwner && sync.repoName);
+  }
+  function repoPathFor(id) { return `sheets/${id}.pdf`; }
+  function safePath(p) { return p.split("/").map(encodeURIComponent).join("/"); }
+
+  async function repoEnsure(owner, name) {
+    try {
+      await ghRequest(`/repos/${owner}/${name}`);
+      return;
+    } catch (e) {
+      if (!/^404\b/.test(e.message)) throw e;
+    }
+    await ghRequest("/user/repos", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        private: true,
+        auto_init: true,
+        description: "Summer Goals — sheet music PDFs (private)",
+      }),
+    });
+  }
+  async function repoPutFile(path, blob, sha) {
+    const b64 = await blobToBase64(blob);
+    const body = {
+      message: sha ? `Update ${path}` : `Add ${path}`,
+      content: b64,
+    };
+    if (sha) body.sha = sha;
+    const res = await ghRequest(
+      `/repos/${sync.repoOwner}/${sync.repoName}/contents/${safePath(path)}`,
+      { method: "PUT", body: JSON.stringify(body) }
+    );
+    return res.content && res.content.sha;
+  }
+  async function repoGetFile(path) {
+    const res = await fetch(
+      `https://api.github.com/repos/${sync.repoOwner}/${sync.repoName}/contents/${safePath(path)}`,
+      {
+        headers: {
+          "Accept": "application/vnd.github.raw",
+          "Authorization": `Bearer ${sync.token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      }
+    );
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.blob();
+  }
+  async function repoGetSha(path) {
+    const res = await ghRequest(`/repos/${sync.repoOwner}/${sync.repoName}/contents/${safePath(path)}`);
+    return res.sha;
+  }
+  async function repoDeleteFile(path, sha) {
+    let useSha = sha;
+    if (!useSha) {
+      try { useSha = await repoGetSha(path); } catch { return; /* already gone */ }
+    }
+    await ghRequest(
+      `/repos/${sync.repoOwner}/${sync.repoName}/contents/${safePath(path)}`,
+      { method: "DELETE", body: JSON.stringify({ message: `Delete ${path}`, sha: useSha }) }
+    );
+  }
 
   async function addSheet(name, composer, file) {
     const id = uid();
@@ -1594,33 +1665,30 @@
       filename: file.name,
       size: file.size,
       addedAt: Date.now(),
-      syncFile: null,
+      repoPath: null,
+      repoSha: null,
+      syncFile: null,    // legacy gist storage
       synced: false,
       status: "long-way",
     };
     await dbPut(id, file);
     state.sheets.push(sheet);
+    renderSheets();
 
-    // Encode + (maybe) push to gist
-    const b64 = await blobToBase64(file);
-    if (b64.length <= GIST_MAX_FILE) {
-      sheet.syncFile = `sheet-${id}.b64`;
-      if (isConnected()) {
-        try {
-          await ghRequest(`/gists/${sync.gistId}`, {
-            method: "PATCH",
-            body: JSON.stringify({ files: { [sheet.syncFile]: { content: b64 } } }),
-          });
-          sheet.synced = true;
-        } catch (e) {
-          setStatus(`Sheet push failed: ${e.message}`, "err");
-        }
+    if (file.size <= REPO_MAX_FILE && isRepoConnected()) {
+      try {
+        setStatus(`Uploading ${file.name}…`, "busy");
+        const path = repoPathFor(id);
+        const sha = await repoPutFile(path, file);
+        sheet.repoPath = path;
+        sheet.repoSha = sha;
+        sheet.synced = true;
+        setStatus("Uploaded.", "ok");
+      } catch (e) {
+        setStatus(`Sheet push failed: ${e.message}`, "err");
       }
-    } else {
-      // Too big for gist
-      sheet.syncFile = null;
     }
-    save(); // pushes metadata
+    save(); // pushes metadata (debounced)
     renderSheets();
   }
 
@@ -1637,13 +1705,17 @@
     if (!sheet) return;
     if (!confirm(`Delete "${sheet.name}"? The PDF will be removed from this device and the synced copy.`)) return;
     await dbDelete(id);
+    if (sheet.repoPath && isRepoConnected()) {
+      try { await repoDeleteFile(sheet.repoPath, sheet.repoSha); }
+      catch (e) { /* ignore — file might already be gone */ }
+    }
     if (sheet.syncFile && isConnected()) {
       try {
         await ghRequest(`/gists/${sync.gistId}`, {
           method: "PATCH",
           body: JSON.stringify({ files: { [sheet.syncFile]: null } }),
         });
-      } catch (e) { /* ignore — gist file might already be gone */ }
+      } catch { /* ignore */ }
     }
     state.sheets = state.sheets.filter(s => s.id !== id);
     save();
@@ -1653,25 +1725,73 @@
   async function getSheetBlob(sheet) {
     let blob = await dbGet(sheet.id);
     if (blob) return blob;
-    // Not cached → pull from gist
-    if (!sheet.syncFile || !isConnected()) return null;
-    setStatus("Fetching PDF…", "busy");
-    try {
-      const gist = await ghRequest(`/gists/${sync.gistId}`);
-      const file = gist.files && gist.files[sheet.syncFile];
-      if (!file) throw new Error("not in gist");
-      let content = file.content;
-      if (file.truncated && file.raw_url) {
-        content = await (await fetch(file.raw_url)).text();
+    // Try repo first (new storage)
+    if (sheet.repoPath && isRepoConnected()) {
+      setStatus("Fetching PDF…", "busy");
+      try {
+        blob = await repoGetFile(sheet.repoPath);
+        await dbPut(sheet.id, blob);
+        setStatus("PDF cached.", "ok");
+        return blob;
+      } catch (e) {
+        setStatus(`PDF fetch failed: ${e.message}`, "err");
       }
-      blob = base64ToBlob(content.replace(/\s/g, ""));
-      await dbPut(sheet.id, blob);
-      setStatus("PDF cached.", "ok");
-      return blob;
-    } catch (e) {
-      setStatus(`PDF fetch failed: ${e.message}`, "err");
-      return null;
     }
+    // Fall back to gist (legacy storage)
+    if (sheet.syncFile && isConnected()) {
+      setStatus("Fetching PDF (legacy gist)…", "busy");
+      try {
+        const gist = await ghRequest(`/gists/${sync.gistId}`);
+        const file = gist.files && gist.files[sheet.syncFile];
+        if (!file) throw new Error("not in gist");
+        let content = file.content;
+        if (file.truncated && file.raw_url) {
+          content = await (await fetch(file.raw_url)).text();
+        }
+        blob = base64ToBlob(content.replace(/\s/g, ""));
+        await dbPut(sheet.id, blob);
+        setStatus("PDF cached.", "ok");
+        return blob;
+      } catch (e) {
+        setStatus(`PDF fetch failed: ${e.message}`, "err");
+      }
+    }
+    return null;
+  }
+
+  async function migrateSheetsToRepo() {
+    if (!isRepoConnected()) return;
+    const toMigrate = state.sheets.filter(s => s.syncFile && !s.repoPath);
+    if (!toMigrate.length) return;
+    setStatus(`Migrating ${toMigrate.length} PDF${toMigrate.length === 1 ? "" : "s"} to repo…`, "busy");
+    let done = 0, failed = 0;
+    for (const sheet of toMigrate) {
+      try {
+        const blob = await getSheetBlob(sheet);
+        if (!blob) { failed++; continue; }
+        const path = repoPathFor(sheet.id);
+        const sha = await repoPutFile(path, blob);
+        sheet.repoPath = path;
+        sheet.repoSha = sha;
+        sheet.synced = true;
+        // Remove from gist (best-effort)
+        try {
+          await ghRequest(`/gists/${sync.gistId}`, {
+            method: "PATCH",
+            body: JSON.stringify({ files: { [sheet.syncFile]: null } }),
+          });
+        } catch {}
+        sheet.syncFile = null;
+        done++;
+        setStatus(`Migrated ${done}/${toMigrate.length}…`, "busy");
+      } catch (e) {
+        console.error("migration failed for", sheet.name, e);
+        failed++;
+      }
+    }
+    save();
+    renderSheets();
+    setStatus(`Migration done: ${done} moved${failed ? `, ${failed} failed` : ""}.`, failed ? "err" : "ok");
   }
 
   let activePdfUrl = null;
@@ -1729,9 +1849,10 @@
         }
         const el = document.createElement("div");
         el.className = "sheet" + (sheet.status === "memorized" ? " memorized" : "");
-        const syncLabel = sheet.syncFile
-          ? (sheet.synced ? "synced" : "sync pending")
-          : "local only (too big to sync)";
+        let syncLabel;
+        if (sheet.repoPath) syncLabel = sheet.synced ? "synced" : "sync pending";
+        else if (sheet.syncFile) syncLabel = "on legacy gist";
+        else syncLabel = "local only";
         const options = SHEET_STATUSES.map(s =>
           `<option value="${s.key}" ${s.key === sheet.status ? "selected" : ""}>${s.label}</option>`
         ).join("");
@@ -1771,14 +1892,14 @@
       sheetFileName.textContent = "Choose PDF…";
       sheetFileLabel.classList.remove("has-file");
       sheetWarn.classList.remove("err");
-      sheetWarn.textContent = "PDFs sync across devices up to ~750 KB. Larger files stay on this device only.";
+      sheetWarn.textContent = "PDFs up to 50 MB sync across devices. Larger files stay on this device only.";
       return;
     }
     sheetFileName.textContent = `${f.name} (${fmtBytes(f.size)})`;
     sheetFileLabel.classList.add("has-file");
-    if (f.size > 700 * 1024) {
+    if (f.size > REPO_MAX_FILE) {
       sheetWarn.classList.add("err");
-      sheetWarn.textContent = `⚠ ${fmtBytes(f.size)} — likely too big to sync via gist. Will be stored on this device only.`;
+      sheetWarn.textContent = `⚠ ${fmtBytes(f.size)} — over 50 MB cap, will be stored on this device only.`;
     } else {
       sheetWarn.classList.remove("err");
       sheetWarn.textContent = "Will sync across your devices.";
@@ -1827,6 +1948,7 @@
     status: document.getElementById("sync-status"),
     token: document.getElementById("sync-token"),
     gist: document.getElementById("sync-gist"),
+    repo: document.getElementById("sync-repo"),
     connect: document.getElementById("sync-connect"),
     pull: document.getElementById("sync-pull"),
     push: document.getElementById("sync-push"),
@@ -1935,24 +2057,52 @@
     if (syncEls.panel.classList.contains("open")) {
       syncEls.token.value = sync.token;
       syncEls.gist.value = sync.gistId;
+      syncEls.repo.value = (sync.repoOwner && sync.repoName) ? `${sync.repoOwner}/${sync.repoName}` : "";
     }
   });
 
   syncEls.connect.addEventListener("click", async () => {
     const token = syncEls.token.value.trim();
     const gistId = syncEls.gist.value.trim();
+    const repoSpec = syncEls.repo.value.trim();
     if (!token) { setStatus("Enter a token first.", "err"); return; }
     sync.token = token;
     sync.gistId = gistId;
-    saveSync();
+
+    // Parse "owner/name" or just "name"
+    let owner = "", name = "";
+    if (repoSpec.includes("/")) {
+      [owner, name] = repoSpec.split("/").map(s => s.trim());
+    } else {
+      name = repoSpec;
+    }
+
     setStatus("Connecting…", "busy");
     try {
+      if (!owner) {
+        const user = await ghRequest("/user");
+        owner = user.login;
+      }
+      if (!name) name = "summer-goals-sheets";
+      sync.repoOwner = owner;
+      sync.repoName = name;
+      saveSync();
+
+      // Ensure gist
       if (!sync.gistId) {
         await createGist();
-        setStatus("Created new gist. Synced.", "ok");
       } else {
         await pullNow({ silent: true });
       }
+
+      // Ensure repo
+      setStatus(`Setting up ${owner}/${name}…`, "busy");
+      await repoEnsure(owner, name);
+
+      // Migrate any old gist-stored sheets
+      await migrateSheetsToRepo();
+
+      setStatus(`Connected. Repo: ${owner}/${name}`, "ok");
     } catch (e) {
       setStatus(`Connect failed: ${e.message}`, "err");
     }
@@ -1961,11 +2111,12 @@
   syncEls.pull.addEventListener("click", () => pullNow());
   syncEls.push.addEventListener("click", () => pushNow());
   syncEls.disconnect.addEventListener("click", () => {
-    if (!confirm("Disconnect sync? Token + gist ID will be removed from this browser. Your gist is not deleted.")) return;
-    sync = { token: "", gistId: "" };
+    if (!confirm("Disconnect sync? Token + gist + repo settings will be removed from this browser. Your gist and repo are not deleted.")) return;
+    sync = { token: "", gistId: "", repoOwner: "", repoName: "" };
     saveSync();
     syncEls.token.value = "";
     syncEls.gist.value = "";
+    syncEls.repo.value = "";
     setStatus("Not connected.", "idle");
   });
 
